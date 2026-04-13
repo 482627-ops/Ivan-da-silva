@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "ServiceReport": {
+      "title": "Service Report",
+      "description": "A report of a completed MDU execution.",
+      "type": "object",
+      "properties": {
+        "codigoUnico": { "type": "string" },
+        "osConstrucao": { "type": "string" },
+        "contrato": { "type": "string" },
+        "tipoProjeto": { "type": "string" },
+        "nomeInstalador": { "type": "string" },
+        "reInstalador": { "type": "string" },
+        "loginInstalador": { "type": "string" },
+        "nomeAuxiliar": { "type": "string" },
+        "reAuxiliar": { "type": "string" },
+        "loginAuxiliar": { "type": "string" },
+        "cep": { "type": "string" },
+        "endereco": { "type": "string" },
+        "numeroEndereco": { "type": "string" },
+        "totalBlocos": { "type": "string" },
+        "totalAndares": { "type": "string" },
+        "aptPorAndar": { "type": "string" },
+        "totalHps": { "type": "string" },
+        "quantidadeNaps": { "type": "string" },
+        "statusConstrucao": { "type": "string" },
+        "ativacao": { "type": "string" },
+        "dataInicio": { "type": "string" },
+        "dataFim": { "type": "string" },
+        "observacao": { "type": "string" },
+        "quantidadePostes": { "type": "string" },
+        "justificativaCabo": { "type": "string" },
+        "materiaisUsados": { "type": "object" },
+        "statusGestao": { "type": "string" },
+        "motivoReprovacao": { "type": "string" },
+        "dataReprovacao": { "type": "number" },
+        "timestamp": { "type": "number" },
+        "dataCriacao": { "type": "string" },
+        "tecnicoId": { "type": "string" },
+        "evidencias": { "type": "object" },
+        "fotosBase64": { "type": "array" },
+        "etapas": { "type": "object" },
+        "valorPorHp": { "type": "number" },
+        "incidenteEndereco": { "type": "string" },
+        "incidenteModo": { "type": "string" },
+        "incidenteEquipe": { "type": "string" },
+        "incidenteSupervisor": { "type": "string" },
+        "incidenteCaixaM": { "type": "string" },
+        "incidenteNomenclaturaFibra": { "type": "string" },
+        "incidentePosicaoFibra": { "type": "string" },
+        "incidenteDescricao": { "type": "string" }
+      }
+    },
+    "Installer": {
+      "title": "Installer",
+      "description": "A technician registered in the system.",
+      "type": "object",
+      "properties": {
+        "re": { "type": "string" },
+        "login": { "type": "string" },
+        "nome": { "type": "string" }
+      }
+    },
+    "AdminConfig": {
+      "title": "Admin Config",
+      "description": "Configuration for administrative access.",
+      "type": "object",
+      "properties": {
+        "password": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/artifacts/{appId}/public/data/service_reports/{reportId}": {
+      "schema": "ServiceReport",
+      "description": "Collection of service reports."
+    },
+    "/artifacts/{appId}/public/data/installers/{installerId}": {
+      "schema": "Installer",
+      "description": "Collection of registered installers."
+    },
+    "/artifacts/{appId}/public/data/config/admin": {
+      "schema": "AdminConfig",
+      "description": "Admin configuration document."
+    }
+  }
+}

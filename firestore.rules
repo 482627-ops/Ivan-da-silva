@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: artifacts/{appId}/public/data/service_reports
+    // Fields:
+    //   - codigoUnico: string
+    //   - osConstrucao: string
+    //   - contrato: string
+    //   - tipoProjeto: string
+    //   - nomeInstalador: string
+    //   - reInstalador: string
+    //   - loginInstalador: string
+    //   - nomeAuxiliar: string
+    //   - reAuxiliar: string
+    //   - loginAuxiliar: string
+    //   - cep: string
+    //   - endereco: string
+    //   - numeroEndereco: string
+    //   - totalBlocos: string
+    //   - totalAndares: string
+    //   - aptPorAndar: string
+    //   - totalHps: string
+    //   - quantidadeNaps: string
+    //   - statusConstrucao: string
+    //   - ativacao: string
+    //   - dataInicio: string
+    //   - dataFim: string
+    //   - observacao: string
+    //   - quantidadePostes: string
+    //   - justificativaCabo: string
+    //   - materiaisUsados: map
+    //   - statusGestao: string
+    //   - motivoReprovacao: string
+    //   - dataReprovacao: number | null
+    //   - timestamp: number
+    //   - dataCriacao: string
+    //   - tecnicoId: string
+    //   - evidencias: map
+    //   - fotosBase64: list
+    //   - etapas: map
+    //
+    // Collection: artifacts/{appId}/public/data/installers
+    // Fields:
+    //   - re: string
+    //   - login: string
+    //   - nome: string
+    //
+    // Collection: artifacts/{appId}/public/data/config
+    // Document: admin
+    // Fields:
+    //   - password: string
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (request.auth.token.email == "482627@gmail.com" && request.auth.token.email_verified == true) ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        );
+    }
+
+    function isValidServiceReport(data) {
+      return data.keys().hasAll(['codigoUnico', 'osConstrucao', 'contrato', 'tecnicoId', 'timestamp']) &&
+             data.codigoUnico is string && data.codigoUnico.size() < 100 &&
+             data.osConstrucao is string && data.osConstrucao.size() < 100 &&
+             data.contrato is string && data.contrato.size() < 100 &&
+             data.tecnicoId == request.auth.uid &&
+             data.timestamp is number &&
+             data.fotosBase64 is list && data.fotosBase64.size() <= 50;
+    }
+
+    function isValidInstaller(data) {
+      return data.keys().hasAll(['re', 'login', 'nome']) &&
+             data.re is string && data.re.size() < 50 &&
+             data.login is string && data.login.size() < 100 &&
+             data.nome is string && data.nome.size() < 200;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /artifacts/{appId}/public/data/service_reports/{reportId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidServiceReport(request.resource.data);
+      allow update: if isAuthenticated() && (
+        // Admin can update anything (e.g. approving/rejecting)
+        isAdmin() ||
+        // Owner can update their own report but cannot change statusGestao or etapas if they are not admin
+        (request.auth.uid == resource.data.tecnicoId && 
+         isValidServiceReport(request.resource.data) &&
+         request.resource.data.statusGestao == resource.data.statusGestao &&
+         (!('etapas' in request.resource.data) || request.resource.data.etapas == resource.data.etapas))
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /artifacts/{appId}/public/data/installers/{installerId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /artifacts/{appId}/public/data/config/admin {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
